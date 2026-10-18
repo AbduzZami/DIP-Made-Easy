@@ -1,4 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DIP Made Easy</title>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}html{-webkit-text-size-adjust:100%;text-size-adjust:100%}</style>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hind+Siliguri:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -249,6 +253,37 @@ nav{min-width:0}
   .chips2 button{white-space:nowrap;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.9rem}
   .chips2 button[aria-current="true"]{border-color:var(--photon);box-shadow:0 0 0 1px var(--photon)}
 }
+
+.fsbtn{position:absolute;right:10px;top:8px;width:34px;height:34px;border-radius:8px;border:1px solid var(--gridline);background:var(--stage-2);color:var(--stage-ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fsbtn svg{width:16px;height:16px}
+.stage:fullscreen{display:flex;align-items:center;justify-content:center;border-radius:0}
+.stage:fullscreen svg.st{width:100%;height:100%;max-height:100vh}
+.stage.max{position:fixed;inset:0;z-index:50;border-radius:0;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.stage.max svg.st{width:100%;height:100%}
+@media (orientation:portrait){.stage.max svg.st{position:absolute;left:50%;top:50%;width:100vh;height:100vw;max-width:none;transform:translate(-50%,-50%) rotate(90deg)}}
+.mhint{display:none;margin:8px 0 0;font-size:.82rem;color:var(--muted)}
+@media (max-width:600px){
+  .mhint{display:block}
+  h1{font-size:1.45rem;margin:2px 0 12px}
+  .eyebrow{font-size:.68rem}
+  .wrap{padding-block:14px 32px;gap:12px}
+  .cap{padding:12px 14px;min-height:0}
+  .cap p{font-size:1rem;line-height:1.6}
+  .ctrl{gap:8px}
+  .ctrl .btn{padding:8px 12px}
+  .btn.play{min-width:96px}
+  .ctrl .sp{flex-basis:100%;height:0}
+  .ctrl label select{max-width:150px}
+  .count{font-size:.8rem}
+  .brand b{font-size:1.15rem}
+  .seg button{padding:4px 10px}
+  .notes ul{padding-left:18px}
+  .opts{grid-template-columns:1fr}
+  .panel{padding:14px}
+  .prow input[type=range]{width:100%}
+  .prow label{flex-wrap:wrap;width:100%}
+  .stepbar i{width:16px}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -262,6 +297,7 @@ nav{min-width:0}
     <clipPath id="drumclip"><rect x="80" y="130" width="300" height="140"/></clipPath>
   </defs>
 </svg>
+</head><body>
 <header class="top"><div class="top-in">
   <div class="brand"><b>DIP <i>Made</i> Easy</b><span id="hdrsub"></span></div>
   <div class="seg" role="group" aria-label="Narration language">
@@ -513,7 +549,8 @@ function render(){if(cleanup){cleanup();cleanup=null}if(panelClean){panelClean()
   const nextBtn=np?`<button class="btn nextch" id="nextch" hidden>${tr(UI.next2)}: ${tr(LECT[np[0]].chapters[np[1]].title)} →</button>`:"";
   if(ch.quiz){$("#main").innerHTML=head+renderQuiz(ch)+(np?`<button class="btn nextch" id="nextch">${tr(UI.next2)}: ${tr(LECT[np[0]].title)} →</button>`:"");bindQuiz(ch);$("#nextch")&&($("#nextch").onclick=()=>go(...np));return}
   $("#main").innerHTML=head+`
-   <div class="stage"><svg class="st" viewBox="0 0 800 440" role="img" aria-label="${tr(ch.title)}">${typeof ch.svg==="function"?ch.svg():ch.svg||""}</svg><div class="stepbar" id="stepbar"></div></div>
+   <div class="stage"><svg class="st" viewBox="0 0 800 440" role="img" aria-label="${tr(ch.title)}">${typeof ch.svg==="function"?ch.svg():ch.svg||""}</svg><div class="stepbar" id="stepbar"></div><button class="fsbtn" id="fsbtn" aria-label="Enlarge animation"><svg viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+   <p class="mhint">${tr({en:"Tip: tap ⤢ or turn your phone sideways for a bigger view.",bn:"টিপ: বড় করে দেখতে ⤢ চাপো অথবা ফোন আড়াআড়ি করো।"})}</p>
    <div class="cap" id="cap"><p id="capp"></p><div class="warn" id="warn" hidden></div></div>
    <div class="ctrl">
      <button class="btn" id="prev"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5z"/></svg><span></span></button>
@@ -531,6 +568,7 @@ function render(){if(cleanup){cleanup();cleanup=null}if(panelClean){panelClean()
   $("#prev").onclick=()=>{if(S.step>0){S.step--;applyStep();speakStep()}};
   $("#next").onclick=()=>{if(S.step<ch.steps.length-1){S.step++;applyStep();speakStep()}else if(np)go(...np)};
   $("#play").onclick=togglePlay;
+  $("#fsbtn").onclick=toggleFull;
   $("#rate").value=String(S.rate);$("#rate").onchange=e=>{S.rate=+e.target.value;save();if(S.playing)speakStep()};
   $("#voice").onchange=e=>{S.voiceName[S.lang]=e.target.value;if(S.playing)speakStep()};
   $("#nextch")&&($("#nextch").onclick=()=>go(...np));
@@ -560,6 +598,13 @@ function fillVoices(){const sel=$("#voice"),w=$("#warn");if(!sel)return;const li
   sel.disabled=!list.length;
   if(!synth||!voices.length){w.innerHTML=tr(UI.noVoice);w.hidden=false}else if(S.lang==="bn"&&!list.length){w.innerHTML=UI.noBn.bn;w.hidden=false}else w.hidden=true}
 
+/* ---------- enlarge stage ---------- */
+function toggleFull(){const st=document.querySelector(".stage");if(!st)return;
+  if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return}
+  if(st.classList.contains("max")){st.classList.remove("max");document.body.style.overflow="";return}
+  const p=st.requestFullscreen?st.requestFullscreen():Promise.reject();
+  p.then(()=>{try{screen.orientation.lock("landscape").catch(()=>{})}catch(e){}}).catch(()=>{st.classList.add("max");document.body.style.overflow="hidden"})}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){const st=document.querySelector(".stage.max");if(st){st.classList.remove("max");document.body.style.overflow=""}}});
 /* ---------- quiz ---------- */
 const QZ={};
 function renderQuiz(ch){const k=L().id;QZ[k]=QZ[k]||{};return `<div class="quiz">${ch.questions.map((q,i)=>`<div class="q" data-q="${i}"><h4><span>${bnNum(i+1)}.</span>${tr(q.q)}</h4>
@@ -3478,3 +3523,4 @@ quiz:[
 
 boot();
 </script>
+</body></html>

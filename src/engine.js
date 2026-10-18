@@ -71,7 +71,8 @@ function render(){if(cleanup){cleanup();cleanup=null}if(panelClean){panelClean()
   const nextBtn=np?`<button class="btn nextch" id="nextch" hidden>${tr(UI.next2)}: ${tr(LECT[np[0]].chapters[np[1]].title)} →</button>`:"";
   if(ch.quiz){$("#main").innerHTML=head+renderQuiz(ch)+(np?`<button class="btn nextch" id="nextch">${tr(UI.next2)}: ${tr(LECT[np[0]].title)} →</button>`:"");bindQuiz(ch);$("#nextch")&&($("#nextch").onclick=()=>go(...np));return}
   $("#main").innerHTML=head+`
-   <div class="stage"><svg class="st" viewBox="0 0 800 440" role="img" aria-label="${tr(ch.title)}">${typeof ch.svg==="function"?ch.svg():ch.svg||""}</svg><div class="stepbar" id="stepbar"></div></div>
+   <div class="stage"><svg class="st" viewBox="0 0 800 440" role="img" aria-label="${tr(ch.title)}">${typeof ch.svg==="function"?ch.svg():ch.svg||""}</svg><div class="stepbar" id="stepbar"></div><button class="fsbtn" id="fsbtn" aria-label="Enlarge animation"><svg viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+   <p class="mhint">${tr({en:"Tip: tap ⤢ or turn your phone sideways for a bigger view.",bn:"টিপ: বড় করে দেখতে ⤢ চাপো অথবা ফোন আড়াআড়ি করো।"})}</p>
    <div class="cap" id="cap"><p id="capp"></p><div class="warn" id="warn" hidden></div></div>
    <div class="ctrl">
      <button class="btn" id="prev"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5z"/></svg><span></span></button>
@@ -89,6 +90,7 @@ function render(){if(cleanup){cleanup();cleanup=null}if(panelClean){panelClean()
   $("#prev").onclick=()=>{if(S.step>0){S.step--;applyStep();speakStep()}};
   $("#next").onclick=()=>{if(S.step<ch.steps.length-1){S.step++;applyStep();speakStep()}else if(np)go(...np)};
   $("#play").onclick=togglePlay;
+  $("#fsbtn").onclick=toggleFull;
   $("#rate").value=String(S.rate);$("#rate").onchange=e=>{S.rate=+e.target.value;save();if(S.playing)speakStep()};
   $("#voice").onchange=e=>{S.voiceName[S.lang]=e.target.value;if(S.playing)speakStep()};
   $("#nextch")&&($("#nextch").onclick=()=>go(...np));
@@ -118,6 +120,13 @@ function fillVoices(){const sel=$("#voice"),w=$("#warn");if(!sel)return;const li
   sel.disabled=!list.length;
   if(!synth||!voices.length){w.innerHTML=tr(UI.noVoice);w.hidden=false}else if(S.lang==="bn"&&!list.length){w.innerHTML=UI.noBn.bn;w.hidden=false}else w.hidden=true}
 
+/* ---------- enlarge stage ---------- */
+function toggleFull(){const st=document.querySelector(".stage");if(!st)return;
+  if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return}
+  if(st.classList.contains("max")){st.classList.remove("max");document.body.style.overflow="";return}
+  const p=st.requestFullscreen?st.requestFullscreen():Promise.reject();
+  p.then(()=>{try{screen.orientation.lock("landscape").catch(()=>{})}catch(e){}}).catch(()=>{st.classList.add("max");document.body.style.overflow="hidden"})}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){const st=document.querySelector(".stage.max");if(st){st.classList.remove("max");document.body.style.overflow=""}}});
 /* ---------- quiz ---------- */
 const QZ={};
 function renderQuiz(ch){const k=L().id;QZ[k]=QZ[k]||{};return `<div class="quiz">${ch.questions.map((q,i)=>`<div class="q" data-q="${i}"><h4><span>${bnNum(i+1)}.</span>${tr(q.q)}</h4>
