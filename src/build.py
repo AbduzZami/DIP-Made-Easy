@@ -3,7 +3,7 @@ D=os.path.dirname(os.path.abspath(__file__))
 r=lambda f:open(os.path.join(D,f),encoding='utf-8').read()
 lects=sorted(glob.glob(os.path.join(D,'l[0-9][0-9].js')))
 js="\n".join([r('lib.js'),r('engine.js')]+[open(f,encoding='utf-8').read() for f in lects]+["boot();"])
-html=f'''<title>DIP Made Ease</title>
+html=f'''<title>DIP Made Easy</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hind+Siliguri:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -11,7 +11,7 @@ html=f'''<title>DIP Made Ease</title>
 {r('css2.html')}
 {r('defs.html')}
 <header class="top"><div class="top-in">
-  <div class="brand"><b>DIP <i>Made</i> Ease</b><span id="hdrsub"></span></div>
+  <div class="brand"><b>DIP <i>Made</i> Easy</b><span id="hdrsub"></span></div>
   <div class="seg" role="group" aria-label="Narration language">
     <button id="lang-en" aria-pressed="true">English</button>
     <button id="lang-bn" aria-pressed="false">বাংলা</button>

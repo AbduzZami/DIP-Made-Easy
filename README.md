@@ -1,4 +1,4 @@
-# DIP Made Ease
+# DIP Made Easy
 
 Animated, chapter-by-chapter lessons for **Digital Image Processing (CSE 0613 4205)** at BUFT, with narration that switches between **English and Bangla**.
 
