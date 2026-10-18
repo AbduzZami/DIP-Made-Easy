@@ -1,0 +1,69 @@
+<style>
+nav{min-width:0}
+.navhead{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
+#lecs{list-style:none;margin:0;padding:0;display:grid;gap:2px;position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto;padding-right:4px}
+.lecbtn{width:100%;text-align:left;display:grid;grid-template-columns:30px 1fr;gap:6px;align-items:baseline;border:0;background:none;padding:8px 10px;border-radius:8px;cursor:pointer;line-height:1.3;font-weight:500}
+.lecbtn:hover{background:var(--panel)}
+.lec-item.open>.lecbtn{color:var(--ink)}
+.lecbtn .n,.chbtn .n{font-family:var(--f-mono);font-size:.76rem;color:var(--muted)}
+.lec-item.open>.lecbtn .n{color:var(--photon);font-weight:600}
+.chs{list-style:none;margin:2px 0 8px;padding:0 0 0 18px;display:none;gap:1px;border-left:1px solid var(--line);margin-left:22px}
+.lec-item.open .chs{display:grid}
+.chbtn{width:100%;text-align:left;display:grid;grid-template-columns:24px 1fr 10px;gap:6px;align-items:center;border:0;background:none;padding:6px 8px;border-radius:7px;cursor:pointer;line-height:1.3;font-size:.93rem;color:var(--muted)}
+.chbtn:hover{background:var(--panel);color:var(--ink)}
+.chbtn[aria-current="true"]{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.chbtn[aria-current="true"] .n{color:var(--photon);font-weight:600}
+.chbtn .dot{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--line)}
+.chbtn.seen .dot{background:var(--good);border-color:var(--good)}
+.mob{display:none}
+.panel{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:12px}
+.panel h3{font-family:var(--f-display);font-size:1.05rem;margin:0}
+.prow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.prow label{display:flex;gap:10px;align-items:center;font-size:.92rem;color:var(--muted);min-width:0}
+.prow input[type=range]{width:min(260px,60vw);accent-color:var(--photon)}
+.prow output{font-family:var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums;min-width:3.5em}
+.panel .fine{font-size:.85rem;color:var(--muted);margin:0}
+.st .cell{fill:var(--stage-2);stroke:var(--gridline)}
+.st .cell.on{fill:#3A5578}
+.st .cell.a{fill:var(--ray);fill-opacity:.85}
+.st .cell.b{fill:var(--xray);fill-opacity:.75}
+.st .cell.c{fill:#4CC489;fill-opacity:.7}
+.st .cell.d{fill:#F07A62;fill-opacity:.75}
+.st .cell.w{fill:#E8EEF5}
+.st .cell.k{fill:#0B1420}
+.st .ctext{font-family:var(--f-mono);font-size:15px;text-anchor:middle;dominant-baseline:central;fill:var(--stage-ink);pointer-events:none}
+.st .ctext.dk{fill:#0B1420}
+.st .kbox{fill:none;stroke:var(--ray);stroke-width:3;transition:transform .35s ease}
+.st .axis{stroke:var(--stage-dim);stroke-width:1.2;fill:none}
+.st .gl{stroke:var(--gridline);stroke-width:1;fill:none}
+.st .curve{stroke:var(--ray);stroke-width:3;fill:none}
+.st .curve2{stroke:var(--xray);stroke-width:3;fill:none}
+.st .curve3{stroke:#4CC489;stroke-width:3;fill:none}
+.st .curve4{stroke:#F07A62;stroke-width:3;fill:none}
+.st .hbar{fill:var(--xray);fill-opacity:.85}
+.st .hbar2{fill:var(--ray);fill-opacity:.85}
+.st .pix{image-rendering:pixelated}
+.st .frame{fill:none;stroke:var(--stage-dim)}
+.st .box{fill:var(--stage-2);stroke:var(--stage-dim);stroke-width:1.5}
+.st .boxa{fill:var(--stage-2);stroke:var(--ray);stroke-width:2}
+.st .boxb{fill:var(--stage-2);stroke:var(--xray);stroke-width:2}
+.st .link{stroke:var(--stage-dim);stroke-width:2;fill:none}
+.st .sm{font-size:13px}
+.st .xs{font-size:11px}
+.st .lg{font-size:20px}
+.st .mono{font-family:var(--f-mono)}
+.st .c{text-anchor:middle}
+.st .e{text-anchor:end}
+.st .gn{fill:#4CC489} .st .rd{fill:#F07A62}
+.st .pop{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.st .pop{transform-box:fill-box;transform-origin:center}
+@media (max-width:880px){
+  #lecs{display:none}
+  .mob{display:grid;gap:8px;grid-template-columns:minmax(0,1fr)}
+  .mob select{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 10px;width:100%;max-width:100%}
+  .chips2{display:flex;overflow-x:auto;gap:6px;padding-bottom:4px;list-style:none;margin:0;padding-left:0}
+  .chips2 button{white-space:nowrap;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.9rem}
+  .chips2 button[aria-current="true"]{border-color:var(--photon);box-shadow:0 0 0 1px var(--photon)}
+}
+</style>
