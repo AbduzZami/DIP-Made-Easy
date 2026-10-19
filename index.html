@@ -2771,20 +2771,42 @@ steps:[
 points:[{en:"(a) Range [A, B] → one value (white), others → another (black): binary.",bn:"(ক) পরিসর [A, B] → একটি মান (সাদা), বাকি → অন্য মান (কালো): বাইনারি।"},{en:"(b) Brighten or darken [A, B], leave other levels unchanged.",bn:"(খ) [A, B] উজ্জ্বল বা গাঢ় করো, বাকি লেভেল অপরিবর্তিত।"}]},
 /* 9 */
 {id:"bitplane",slides:"50–58",title:{en:"Bit-plane slicing",bn:"বিট-প্লেন স্লাইসিং"},
-svg:`<g data-scene="bin"><g data-s="0"><g id="bp-m"></g><g id="bp-b"></g><text id="bp-t" class="mono am" x="40" y="400"></text></g></g>
-<g data-scene="pl"><g data-s="0"><g id="bp-i"></g></g></g>`,
-init(svg,_){const V=[[167,133,111],[144,140,135],[159,154,148]];_.V=V;_.M=mat($$(svg,"#bp-m"),{x:60,y:110,cs:70,data:V,fs:18,label:"8-bit pixels"});
-  _.B=mat($$(svg,"#bp-b"),{x:340,y:110,cs:46,fs:16,data:[0,1,2].map(()=>Array(8).fill(0)),label:"bits 8 7 6 5 4 3 2 1"});
-  const I=SC(),g=$$(svg,"#bp-i");_.P=[];for(let b=8;b>=1;b--){const k=8-b;const q=imgEl(g,30+(k%4)*190,30+Math.floor(k/4)*200,160,160,`bit plane ${b}`);q.show(mapI(I,v=>(Math.round(v*255)>>(b-1))&1));_.P.push(q)}},
+svg:`<g data-scene="bin"><g data-s="0"><g id="bp-m"></g><g id="bp-c"></g><text id="bp-t" class="mono am" x="40" y="420"></text></g></g>
+<g data-scene="sl"><g data-s="0"><g id="bp-c2"></g><g id="bp-p"></g><text id="bp-t2" class="mono am" x="40" y="420"></text></g></g>
+<g data-scene="pl"><g data-s="0"><g id="bp-i"></g></g></g>
+<g data-scene="rc"><g data-s="0"><g id="bp-r"></g></g></g>`,
+init(svg,_){const V=[[167,133,111],[144,140,135],[159,154,148]];_.V=V;
+  _.M=mat($$(svg,"#bp-m"),{x:40,y:110,cs:70,data:V,fs:18,label:"8-bit pixels"});
+  const codes=(g,x0,y0,cw,ch,fs)=>{const T=[];for(let r=0;r<3;r++){T.push([]);for(let c=0;c<3;c++){const x=x0+c*cw,y=y0+r*ch;el(g,"rect",{x,y,width:cw,height:ch,class:"cell"});
+      const t=el(g,"text",{x:x+cw/2,y:y+ch/2,class:"ctext",style:`font-size:${fs}px`});const bits=V[r][c].toString(2).padStart(8,"0").split("").map(b=>{const s=el(t,"tspan",{},b);return s});T[r].push({bits,t})}}
+    return{T,hl(k){T.flat().forEach(o=>o.bits.forEach((s,j)=>{const on=k!=null&&j===8-k;s.style.fill=on?"#F2A93B":"";s.style.fontWeight=on?"700":""}))},show(on){T.flat().forEach(o=>o.t.style.opacity=on?1:0)}}};
+  _.C=codes($$(svg,"#bp-c"),300,110,150,70,18);txt($$(svg,"#bp-c"),525,100,"binary (bit 8 … bit 1)","c dim sm");
+  _.C2=codes($$(svg,"#bp-c2"),30,90,124,60,15);txt($$(svg,"#bp-c2"),216,80,"bit 8 … bit 1","c dim sm");
+  const g=$$(svg,"#bp-p");_.PL=[];for(let b=8;b>=1;b--){const k=8-b;const P=mat(g,{x:432+(k%4)*90,y:90+Math.floor(k/4)*150,cs:26,fs:12,data:V.map(r=>r.map(()=>"")),label:`plane ${b}`});_.PL.push({b,P})}
+  _.fill=b=>{const o=_.PL[8-b];V.forEach((row,r)=>row.forEach((v,c)=>{const bit=(v>>(b-1))&1;o.P.set(r,c,bit);o.P.cls(r,c,"w",!!bit)}))};
+  _.clearPl=()=>_.PL.forEach(o=>{for(let r=0;r<3;r++)for(let c=0;c<3;c++){o.P.set(r,c,"");o.P.cls(r,c,"w",false)}});
+  const r=rng(21),base=mk(128,128,(x,y)=>lum(landRGB(x,y))/255);const I=mapI(base,v=>Math.max(0,Math.min(1,v+(r()-.5)*.035)));_.I=I;
+  const q8=I.a.map(v=>Math.round(v*255));const plane=b=>({w:128,h:128,a:Float32Array.from(q8,v=>(v>>(b-1))&1)});
+  const gi=$$(svg,"#bp-i");_.P=[];for(let b=8;b>=1;b--){const k=8-b;const q=imgEl(gi,30+(k%4)*190,24,160,160,"");q.show(plane(b));txt(q.g,110+(k%4)*190,206,`plane ${b}`,"c dim sm");q.g.setAttribute("transform",`translate(0,${Math.floor(k/4)*205})`);_.P.push(q)}
+  const recon=n=>({w:128,h:128,a:Float32Array.from(q8,v=>(v&(0xFF<<(8-n)&0xFF))/255)});const gr=$$(svg,"#bp-r");
+  [[8,"original (all 8 planes)"],[1,"plane 8 only"],[2,"planes 8 + 7"],[4,"planes 8 to 5"]].forEach(([n,l],i)=>imgEl(gr,30+i*190,90,170,170,l).show(n===8?{w:128,h:128,a:Float32Array.from(q8,v=>v/255)}:recon(n)));
+  txt(gr,400,330,"the top four planes already look almost like the original","c am")},
 steps:[
- {scene:"bin",k:0,fx:(svg,_)=>{let i=0;return every(1300,()=>{const r=Math.floor(i/3)%3,c=i%3;_.M.clear("a");_.M.cls(r,c,"a");const s=_.V[r][c].toString(2).padStart(8,"0");s.split("").forEach((b,j)=>{_.B.set(r,j,b);_.B.cls(r,j,"w",b==="1")});$$(svg,"#bp-t").textContent=`${_.V[r][c]} = ${s}`;i++})},
-   en:"An 8-bit pixel is made of 8 bits. Bit-plane slicing separates the image into 8 binary images, one for each bit. For example, 167 is 1 0 1 0 0 1 1 1 in binary. It is used in image reconstruction, compression and encryption.",
-   bn:"একটি ৮-বিট পিক্সেল ৮টি বিট দিয়ে তৈরি। বিট-প্লেন স্লাইসিং ইমেজকে ৮টি বাইনারি ইমেজে ভাগ করে, প্রতিটি বিটের জন্য একটি। যেমন ১৬৭-এর বাইনারি হলো ১ ০ ১ ০ ০ ১ ১ ১। এটি ইমেজ পুনর্গঠন, কমপ্রেশন ও এনক্রিপশনে ব্যবহৃত হয়।"},
+ {scene:"bin",k:0,fx:(svg,_)=>{_.C.show(false);_.C.hl(null);const L=[];for(let r=0;r<3;r++)for(let c=0;c<3;c++)L.push([800,()=>{_.M.clear("a");_.M.cls(r,c,"a");_.C.T[r][c].t.style.opacity=1;$$(svg,"#bp-t").textContent=`${_.V[r][c]} = ${_.V[r][c].toString(2).padStart(8,"0")}`}]);
+   L.reset=()=>{_.C.show(false);_.M.clear("a")};return seq(L,true,2500)},
+   en:"In an 8-bit image, every pixel value from 0 to 255 is stored as 8 bits. First write each pixel of this 3 by 3 image in binary. For example, 167 is 1 0 1 0 0 1 1 1, and 133 is 1 0 0 0 0 1 0 1.",
+   bn:"৮-বিট ইমেজে ০ থেকে ২৫৫ পর্যন্ত প্রতিটি পিক্সেলের মান ৮টি বিটে রাখা হয়। প্রথমে এই ৩ বাই ৩ ইমেজের প্রতিটি পিক্সেল বাইনারিতে লেখো। যেমন ১৬৭ হলো ১ ০ ১ ০ ০ ১ ১ ১, আর ১৩৩ হলো ১ ০ ০ ০ ০ ১ ০ ১।"},
+ {scene:"sl",k:0,fx:(svg,_)=>{_.C2.show(true);const L=[];for(let b=8;b>=1;b--)L.push([1400,()=>{_.C2.hl(b);_.fill(b);_.PL.forEach(o=>o.P.g.style.opacity=o.b>=b?1:.25);$$(svg,"#bp-t2").textContent=`plane ${b}: bit ${b} of every pixel (2^${b-1} = ${2**(b-1)})`}]);
+   L.reset=()=>{_.clearPl();_.C2.hl(null)};return seq(L,true,2500)},
+   en:"Now slice. Bit plane 8 collects bit 8, the leftmost bit, of every pixel into a binary image of the same size. Bit plane 7 collects bit 7, and so on down to bit plane 1, which collects the rightmost bit. So one image becomes eight binary images. Plane 8 is the most significant, worth 128, and plane 1 the least significant, worth 1.",
+   bn:"এবার ভাগ করো। বিট প্লেন ৮ প্রতিটি পিক্সেলের ৮ নম্বর বিট, অর্থাৎ সবচেয়ে বাঁয়ের বিট নিয়ে একই সাইজের একটি বাইনারি ইমেজ তৈরি করে। বিট প্লেন ৭ নেয় ৭ নম্বর বিট, এভাবে বিট প্লেন ১ পর্যন্ত, যা সবচেয়ে ডানের বিট নেয়। এভাবে একটি ইমেজ থেকে আটটি বাইনারি ইমেজ পাওয়া যায়। প্লেন ৮ সবচেয়ে গুরুত্বপূর্ণ, যার মান ১২৮, আর প্লেন ১ সবচেয়ে কম গুরুত্বপূর্ণ, যার মান ১।"},
  {scene:"pl",k:0,fx:(svg,_)=>{let i=0;_.P.forEach(q=>q.g.style.opacity=.15);return every(700,()=>{_.P.forEach((q,j)=>q.g.style.opacity=j<=i?1:.15);i=Math.min(7,i+1)})},
-   en:"Bit plane 8 holds the most significant bit, and bit plane 1 the least significant. The higher planes 6, 7 and 8 carry most of the visual information. The lower planes 1 to 5 carry fine detail and look like noise.",
-   bn:"বিট প্লেন ৮-এ থাকে সবচেয়ে গুরুত্বপূর্ণ বিট, আর বিট প্লেন ১-এ সবচেয়ে কম গুরুত্বপূর্ণ বিট। উপরের প্লেন ৬, ৭ ও ৮ বেশিরভাগ দৃশ্যমান তথ্য বহন করে। নিচের প্লেন ১ থেকে ৫ সূক্ষ্ম খুঁটিনাটি বহন করে এবং নয়েজের মতো দেখায়।"}
+   en:"Here are the 8 bit planes of a real 8-bit image. The higher planes 8, 7 and 6 show the main shapes, because they carry most of the visual information. Going down, the planes lose structure. The lowest planes, 1 to 3, look like random noise, because they only hold tiny intensity changes.",
+   bn:"এখানে একটি বাস্তব ৮-বিট ইমেজের ৮টি বিট প্লেন দেখানো হলো। উপরের প্লেন ৮, ৭ ও ৬-এ মূল আকৃতিগুলো দেখা যায়, কারণ এরাই বেশিরভাগ দৃশ্যমান তথ্য বহন করে। নিচের দিকে গেলে প্লেনগুলোর গঠন হারিয়ে যায়। সবচেয়ে নিচের প্লেন ১ থেকে ৩ এলোমেলো নয়েজের মতো দেখায়, কারণ এরা শুধু তীব্রতার খুব ছোট পরিবর্তন ধরে রাখে।"},
+ {scene:"rc",k:0,en:"We can rebuild the image from only the higher planes. Plane 8 alone gives a two-level image. Adding plane 7 gives four levels. The top four planes already look almost like the original. This is why bit-plane slicing is useful in compression: the low planes can be dropped with little visible loss.",
+   bn:"শুধু উপরের প্লেনগুলো দিয়েও ইমেজ আবার তৈরি করা যায়। শুধু প্লেন ৮ দিলে দুই লেভেলের ইমেজ পাওয়া যায়। প্লেন ৭ যোগ করলে চার লেভেল। উপরের চারটি প্লেনেই ইমেজটি প্রায় মূলের মতো দেখায়। এ কারণেই কমপ্রেশনে বিট-প্লেন স্লাইসিং কাজে লাগে: নিচের প্লেনগুলো বাদ দিলেও চোখে প্রায় পার্থক্য বোঝা যায় না।"}
 ],
-points:[{en:"8-bit image → 8 binary bit planes; e.g. 167 = 10100111.",bn:"৮-বিট ইমেজ → ৮টি বাইনারি বিট প্লেন; যেমন ১৬৭ = ১০১০০১১১।"},{en:"Planes 6–8: most significant information. Planes 1–5: least significant.",bn:"প্লেন ৬–৮: সবচেয়ে গুরুত্বপূর্ণ তথ্য। প্লেন ১–৫: কম গুরুত্বপূর্ণ।"}]},
+points:[{en:"Plane k = bit k of every pixel: g_k(x,y) = (f(x,y) >> (k − 1)) AND 1. E.g. 167 = 10100111.",bn:"প্লেন k = প্রতিটি পিক্সেলের k নম্বর বিট: g_k(x,y) = (f(x,y) >> (k − ১)) AND ১। যেমন ১৬৭ = ১০১০০১১১।"},{en:"Planes 6–8: most significant information. Planes 1–5: least significant. Top planes alone reconstruct most of the image.",bn:"প্লেন ৬–৮: সবচেয়ে গুরুত্বপূর্ণ তথ্য। প্লেন ১–৫: কম গুরুত্বপূর্ণ। শুধু উপরের প্লেন দিয়েই ইমেজের বেশিরভাগ পুনর্গঠন হয়।"}]},
 /* 10 */
 {id:"histogram",slides:"59–62",title:{en:"Histograms",bn:"হিস্টোগ্রাম"},
 svg:`<text class="mono am" x="40" y="44">h(r_k) = n_k      p(r_k) = n_k / MN</text><g id="hs-g"></g>`,
