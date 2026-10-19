@@ -214,25 +214,36 @@ points:[
 {id:"modes",slides:"13–17",title:{en:"Imaging environment and types of imaging",bn:"ইমেজিং পরিবেশ ও ইমেজিংয়ের ধরন"},
 svg:`
 <g id="m-r0"><text x="30" y="100" class="lg">Reflective</text>
-  ${SUN(220,90)}<line class="ray" x1="244" y1="100" x2="360" y2="110" marker-end="url(#ah)"/>
-  <rect x="368" y="80" width="64" height="44" rx="6" style="fill:#5C7391"/><line class="ray" x1="436" y1="104" x2="560" y2="100" marker-end="url(#ah)"/>
-  <rect class="sbox" x="566" y="82" width="34" height="34" rx="4"/><text class="dim sm" x="620" y="96">cameras,</text><text class="dim sm" x="620" y="114">scanners</text></g>
+  ${SUN(220,76)}
+  <rect x="330" y="146" width="150" height="12" rx="2" style="fill:#5C7391"/>
+  <path d="M336,158 l-8,10 M356,158 l-8,10 M376,158 l-8,10 M396,158 l-8,10 M416,158 l-8,10 M436,158 l-8,10 M456,158 l-8,10 M476,158 l-8,10" style="stroke:#5C7391;stroke-width:1.5"/>
+  <line x1="405" y1="146" x2="405" y2="96" style="stroke:#93A2B5;stroke-width:1;stroke-dasharray:3 4"/>
+  <line class="ray" x1="246" y1="92" x2="401" y2="143" marker-end="url(#ah)"/>
+  <line class="ray" x1="409" y1="143" x2="556" y2="96" marker-end="url(#ah)"/>
+  <text class="am xs c" x="405" y="86">bounces off</text>
+  <circle r="5" style="fill:#F2A93B"><animateMotion dur="2.2s" repeatCount="indefinite" path="M246,92 L405,145 L556,96"/></circle>
+  <g transform="translate(560,70)"><rect class="sbox" x="0" y="0" width="40" height="30" rx="4"/><circle class="lens" cx="0" cy="22" r="7"/></g>
+  <text class="dim sm" x="612" y="82">cameras,</text><text class="dim sm" x="612" y="100">scanners</text>
+  <text class="dim xs" x="612" y="120">same side as the light</text></g>
 <g id="m-r1"><text x="30" y="230" class="lg">Emissive</text>
   <circle cx="400" cy="222" r="30" style="fill:#F07A62"/><circle cx="400" cy="222" r="42" class="hl" style="stroke:#F07A62"/>
   <text class="dim c xs" x="400" y="276">self-luminous object</text>
   <line class="ray" x1="446" y1="222" x2="560" y2="222" marker-end="url(#ah)" style="stroke:#F07A62"/>
+  <circle r="5" style="fill:#F07A62"><animateMotion dur="1.4s" repeatCount="indefinite" path="M400,222 L558,222"/></circle>
   <rect class="sbox" x="566" y="205" width="34" height="34" rx="4"/><text class="dim sm" x="620" y="226">thermal imaging</text></g>
 <g id="m-r2"><text x="30" y="360" class="lg">Transmissive</text>
   <rect class="dev" x="196" y="336" width="50" height="34" rx="5"/>
   <line class="xray" x1="250" y1="353" x2="370" y2="353"/><rect x="372" y="322" width="56" height="62" rx="10" class="body"/>
   <line class="xray" x1="430" y1="353" x2="560" y2="353" style="opacity:.5" marker-end="url(#ahx)"/>
+  <circle r="5" style="fill:#6EA2FF"><animateMotion dur="2.2s" repeatCount="indefinite" path="M250,353 L558,353"/><animate attributeName="opacity" dur="2.2s" repeatCount="indefinite" values="1;1;.35;.35" keyTimes="0;.4;.6;1"/></circle>
+  <text class="bl xs c" x="400" y="404">passes through</text>
   <rect class="sbox" x="566" y="336" width="34" height="34" rx="4"/><text class="dim sm" x="620" y="348">X-ray, ultrasound,</text><text class="dim sm" x="620" y="366">microscopy</text></g>
 <text class="h" x="200" y="40">SOURCE</text><text class="h" x="368" y="40">OBJECT</text><text class="h" x="560" y="40">SENSOR</text>`,
 steps:[
  {fx:svg=>{[0,1,2].forEach(i=>$$(svg,"#m-r"+i).style.opacity=1)},en:"Every imaging setup has the same parts: a radiation source, an object, and a sensor. Depending on the object, we get three types of imaging: reflective, emissive and transmissive.",
    bn:"প্রতিটি ইমেজিং ব্যবস্থায় একই অংশ থাকে: একটি রেডিয়েশন সোর্স, একটি বস্তু এবং একটি সেন্সর। বস্তুর ধরন অনুযায়ী ইমেজিং তিন রকম: রিফ্লেক্টিভ, এমিসিভ এবং ট্রান্সমিসিভ।"},
- {fx:svg=>{[0,1,2].forEach(i=>$$(svg,"#m-r"+i).style.opacity=i===0?1:.2)},en:"Reflective mode is the simplest. The source lights the object, and a sensor captures the reflected radiation. All video cameras, digital cameras and scanners work this way.",
-   bn:"রিফ্লেক্টিভ মোড সবচেয়ে সহজ। সোর্স বস্তুকে আলোকিত করে, আর সেন্সর প্রতিফলিত রেডিয়েশন ধরে। সব ভিডিও ক্যামেরা, ডিজিটাল ক্যামেরা ও স্ক্যানার এভাবে কাজ করে।"},
+ {fx:svg=>{[0,1,2].forEach(i=>$$(svg,"#m-r"+i).style.opacity=i===0?1:.2)},en:"Reflective mode is the simplest. The source lights the object, the radiation bounces off its surface, and a sensor on the same side as the source captures the reflected radiation. Nothing passes through the object. All video cameras, digital cameras and scanners work this way.",
+   bn:"রিফ্লেক্টিভ মোড সবচেয়ে সহজ। সোর্স বস্তুকে আলোকিত করে, রেডিয়েশন বস্তুর তল থেকে ফিরে আসে, আর সোর্সের একই পাশে থাকা সেন্সর সেই প্রতিফলিত রেডিয়েশন ধরে। কিছুই বস্তুর ভেতর দিয়ে যায় না। সব ভিডিও ক্যামেরা, ডিজিটাল ক্যামেরা ও স্ক্যানার এভাবে কাজ করে।"},
  {fx:svg=>{[0,1,2].forEach(i=>$$(svg,"#m-r"+i).style.opacity=i===1?1:.2)},en:"In emissive imaging, the object is self-luminous. No external source is needed. The sensor directly captures the radiation emitted by the object. Thermal imaging is an example.",
    bn:"এমিসিভ ইমেজিংয়ে বস্তু নিজেই আলো বা রেডিয়েশন ছড়ায়। বাইরের কোনো সোর্স লাগে না। সেন্সর সরাসরি বস্তুর নির্গত রেডিয়েশন ধরে। থার্মাল ইমেজিং এর একটি উদাহরণ।"},
  {fx:svg=>{[0,1,2].forEach(i=>$$(svg,"#m-r"+i).style.opacity=i===2?1:.2)},en:"In transmissive imaging, the source shines through the object. The object absorbs part of the radiation depending on its material, and the attenuated radiation reaching the sensor forms the image. Examples are X-ray, ultrasound and microscopic imaging.",
