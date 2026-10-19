@@ -155,7 +155,7 @@ init(svg,_){const mkObj=g=>{const im=el(g,"image",{x:0,y:-100,width:130,height:1
   mkObj($$(svg,"#gt-ghost"));mkObj($$(svg,"#gt-obj"));$$(svg,"#gt-ghost").setAttribute("transform","translate(60,400)");
   _.M=mat($$(svg,"#gt-m"),{x:500,y:140,cs:54,fs:13,data:[[1,0,0],[0,1,0],[0,0,1]]});
   _.T=(name,m,expl,css)=>{$$(svg,"#gt-n").textContent=name;for(let r=0;r<3;r++)for(let c=0;c<3;c++)_.M.set(r,c,m[r][c]);$$(svg,"#gt-e").textContent=expl;
-    const o=$$(svg,"#gt-obj");o.style.transition="transform 1.2s ease";o.style.transformBox="view-box";o.style.transformOrigin="60px 400px";o.style.transform="translate(60px,400px)";requestAnimationFrame(()=>requestAnimationFrame(()=>o.style.transform=css))};
+    const o=$$(svg,"#gt-obj");o.style.transition="transform 1.2s ease";o.style.transformBox="view-box";o.style.transformOrigin="0px 0px";o.style.transform="translate(60px,400px)";requestAnimationFrame(()=>requestAnimationFrame(()=>o.style.transform=css))};
   const a=img2($$(svg,"#rg-a"),70,80,280,280,"reference");a.show(gen("xray",128));const b=$$(svg,"#rg-b");el(b,"rect",{x:450,y:80,width:280,height:280,class:"frame"});
   const cl=el(b,"clipPath",{id:"rgc"});el(cl,"rect",{x:450,y:80,width:280,height:280});const gg=el(b,"g",{"clip-path":"url(#rgc)"});
   _.ref=el(gg,"image",{x:450,y:80,width:280,height:280,preserveAspectRatio:"none",style:"opacity:.55"});_.ref.setAttribute("href",toURL(gen("xray",128)));
@@ -165,7 +165,7 @@ steps:[
  {scene:"aff",k:0,fx:(svg,_)=>_.T("Translation",[[1,0,"tx"],[0,1,"ty"],[0,0,1]],"shift by (tx, ty), e.g. (0,0) → (15,13)","translate(160px,340px)"),
    en:"A geometric transformation changes the coordinate system of the image: each point x, y moves to a new point v, w. Using homogeneous coordinates, every transformation is a 3 by 3 matrix. Translation shifts the object, for example from 0, 0 to 15, 13.",
    bn:"জ্যামিতিক ট্রান্সফরমেশন ইমেজের স্থানাঙ্ক ব্যবস্থা বদলায়: প্রতিটি বিন্দু x, y নতুন বিন্দু v, w-তে সরে যায়। হোমোজিনিয়াস স্থানাঙ্ক ব্যবহার করলে প্রতিটি ট্রান্সফরমেশন একটি ৩ বাই ৩ ম্যাট্রিক্স। ট্রান্সলেশন বস্তুকে সরিয়ে দেয়, যেমন ০, ০ থেকে ১৫, ১৩-তে।"},
- {scene:"aff",k:0,fx:(svg,_)=>_.T("Rotation",[["cos θ","−sin θ",0],["sin θ","cos θ",0],[0,0,1]],"rotate by θ about the origin","translate(60px,400px) rotate(-30deg)"),
+ {scene:"aff",k:0,fx:(svg,_)=>_.T("Rotation",[["cos θ","−sin θ",0],["sin θ","cos θ",0],[0,0,1]],"rotate by θ (here about the image centre)","translate(90px,370px) translate(65px,-50px) rotate(-30deg) translate(-65px,50px)"),
    en:"Rotation turns the image by a given angle theta, using cosine and sine of theta in the matrix.",
    bn:"রোটেশন ইমেজকে একটি নির্দিষ্ট কোণ থিটা পরিমাণ ঘোরায়, ম্যাট্রিক্সে থিটার কোসাইন ও সাইন ব্যবহার করে।"},
  {scene:"aff",k:0,fx:(svg,_)=>_.T("Scaling",[["sx",0,0],[0,"sy",0],[0,0,1]],"300 × 400 → 600 × 200: sx = 2, sy = 1/2","translate(60px,400px) scale(2,.5)"),
