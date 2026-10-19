@@ -2788,9 +2788,11 @@ init(svg,_){const V=[[167,133,111],[144,140,135],[159,154,148]];_.V=V;
   const r=rng(21),base=mk(128,128,(x,y)=>lum(landRGB(x,y))/255);const I=mapI(base,v=>Math.max(0,Math.min(1,v+(r()-.5)*.035)));_.I=I;
   const q8=I.a.map(v=>Math.round(v*255));const plane=b=>({w:128,h:128,a:Float32Array.from(q8,v=>(v>>(b-1))&1)});
   const gi=$$(svg,"#bp-i");_.P=[];for(let b=8;b>=1;b--){const k=8-b;const q=imgEl(gi,30+(k%4)*190,24,160,160,"");q.show(plane(b));txt(q.g,110+(k%4)*190,206,`plane ${b}`,"c dim sm");q.g.setAttribute("transform",`translate(0,${Math.floor(k/4)*205})`);_.P.push(q)}
-  const recon=n=>({w:128,h:128,a:Float32Array.from(q8,v=>(v&(0xFF<<(8-n)&0xFF))/255)});const gr=$$(svg,"#bp-r");
-  [[8,"original (all 8 planes)"],[1,"plane 8 only"],[2,"planes 8 + 7"],[4,"planes 8 to 5"]].forEach(([n,l],i)=>imgEl(gr,30+i*190,90,170,170,l).show(n===8?{w:128,h:128,a:Float32Array.from(q8,v=>v/255)}:recon(n)));
-  txt(gr,400,330,"the top four planes already look almost like the original","c am")},
+  _.q8=q8;const gr=$$(svg,"#bp-r");_.R=imgEl(gr,40,70,290,290,"");_.Rl=txt(gr,185,390,"","c am");
+  _.ex=[167,133,111,154];_.rows=_.ex.map((v,i)=>{const y=96+i*72;const M=mat(gr,{x:430,y,cs:36,fs:15,data:[v.toString(2).padStart(8,"0").split("")]});const t=txt(gr,430+8*36+18,y+24,"","mono");txt(gr,415,y+24,String(v),"mono e dim");return{M,t,v}});
+  txt(gr,574,84,"bit 8 … bit 1","c dim xs");
+  _.drop=n=>{const mask=(0xFF<<n)&0xFF;_.R.show({w:128,h:128,a:Float32Array.from(_.q8,v=>(v&mask)/255)});_.Rl.textContent=n?`${8-n} bits kept · ${n} dropped · ${2**(8-n)} levels`:"original · 8 bits · 256 levels";
+    _.rows.forEach(o=>{const bits=o.v.toString(2).padStart(8,"0");for(let j=0;j<8;j++){const dropped=j>=8-n;o.M.set(0,j,dropped?"0":bits[j]);o.M.cls(0,j,"d",dropped);o.M.cls(0,j,"w",!dropped&&bits[j]==="1")}o.t.textContent=`→ ${o.v&mask}`})}},
 steps:[
  {scene:"bin",k:0,fx:(svg,_)=>{_.C.show(false);_.C.hl(null);const L=[];for(let r=0;r<3;r++)for(let c=0;c<3;c++)L.push([800,()=>{_.M.clear("a");_.M.cls(r,c,"a");_.C.T[r][c].t.style.opacity=1;$$(svg,"#bp-t").textContent=`${_.V[r][c]} = ${_.V[r][c].toString(2).padStart(8,"0")}`}]);
    L.reset=()=>{_.C.show(false);_.M.clear("a")};return seq(L,true,2500)},
@@ -2803,9 +2805,15 @@ steps:[
  {scene:"pl",k:0,fx:(svg,_)=>{let i=0;_.P.forEach(q=>q.g.style.opacity=.15);return every(700,()=>{_.P.forEach((q,j)=>q.g.style.opacity=j<=i?1:.15);i=Math.min(7,i+1)})},
    en:"Here are the 8 bit planes of a real 8-bit image. The higher planes 8, 7 and 6 show the main shapes, because they carry most of the visual information. Going down, the planes lose structure. The lowest planes, 1 to 3, look like random noise, because they only hold tiny intensity changes.",
    bn:"এখানে একটি বাস্তব ৮-বিট ইমেজের ৮টি বিট প্লেন দেখানো হলো। উপরের প্লেন ৮, ৭ ও ৬-এ মূল আকৃতিগুলো দেখা যায়, কারণ এরাই বেশিরভাগ দৃশ্যমান তথ্য বহন করে। নিচের দিকে গেলে প্লেনগুলোর গঠন হারিয়ে যায়। সবচেয়ে নিচের প্লেন ১ থেকে ৩ এলোমেলো নয়েজের মতো দেখায়, কারণ এরা শুধু তীব্রতার খুব ছোট পরিবর্তন ধরে রাখে।"},
- {scene:"rc",k:0,en:"We can rebuild the image from only the higher planes. Plane 8 alone gives a two-level image. Adding plane 7 gives four levels. The top four planes already look almost like the original. This is why bit-plane slicing is useful in compression: the low planes can be dropped with little visible loss.",
-   bn:"শুধু উপরের প্লেনগুলো দিয়েও ইমেজ আবার তৈরি করা যায়। শুধু প্লেন ৮ দিলে দুই লেভেলের ইমেজ পাওয়া যায়। প্লেন ৭ যোগ করলে চার লেভেল। উপরের চারটি প্লেনেই ইমেজটি প্রায় মূলের মতো দেখায়। এ কারণেই কমপ্রেশনে বিট-প্লেন স্লাইসিং কাজে লাগে: নিচের প্লেনগুলো বাদ দিলেও চোখে প্রায় পার্থক্য বোঝা যায় না।"}
+ {scene:"rc",k:0,fx:(svg,_)=>{const seqN=[0,1,2,3,4,5,6,7,4,3];let i=0;return every(1800,()=>{_.drop(seqN[i%seqN.length]);i++})},
+   en:"Now drop the low bits and regenerate the image. Dropping a bit means setting that bit to zero in every pixel, which is the same as throwing away that bit plane. Dropping 1, 2 or 3 bits barely changes the picture. With 4 bits dropped, 167 becomes 160, only 16 levels remain, and the image still looks very close to the original. Only when 5 or more bits are dropped do false contours and blocky gray steps appear.",
+   bn:"এবার নিচের বিটগুলো বাদ দিয়ে ইমেজ আবার তৈরি করি। একটি বিট বাদ দেওয়া মানে প্রতিটি পিক্সেলে সেই বিটটি শূন্য করে দেওয়া, অর্থাৎ সেই বিট প্লেনটি ফেলে দেওয়া। ১, ২ বা ৩টি বিট বাদ দিলে ছবি প্রায় বদলায় না। ৪টি বিট বাদ দিলে ১৬৭ হয়ে যায় ১৬০, মাত্র ১৬টি লেভেল থাকে, তবুও ইমেজটি প্রায় মূলের মতোই দেখায়। ৫ বা তার বেশি বিট বাদ দিলে তবেই ফলস কনট্যুর আর ধাপে ধাপে ধূসর অঞ্চল দেখা দেয়।"},
+ {scene:"rc",k:0,fx:(svg,_)=>_.drop(4),en:"So keeping only the top 4 bit planes halves the storage, from 8 bits to 4 bits per pixel, with little visible loss. This is why bit-plane slicing is useful in compression. Try other values with the slider below.",
+   bn:"অর্থাৎ শুধু উপরের ৪টি বিট প্লেন রাখলে স্টোরেজ অর্ধেক হয়ে যায়, প্রতি পিক্সেলে ৮ বিট থেকে ৪ বিট, অথচ চোখে খুব কম পার্থক্য বোঝা যায়। এ কারণেই কমপ্রেশনে বিট-প্লেন স্লাইসিং কাজে লাগে। নিচের স্লাইডারে অন্য মান দিয়ে চেষ্টা করো।"}
 ],
+panel:()=>`<h3>${tr({en:"Try it: drop low bits",bn:"নিজে করো: নিচের বিট বাদ দাও"})}</h3><div class="prow">${sl("bd",tr({en:"Bits dropped",bn:"বাদ দেওয়া বিট"}),0,7,1,4)}</div><div class="out"><img id="bda" alt="" width="200" height="200" style="border-radius:6px"><img id="bdb" alt="" width="200" height="200" style="border-radius:6px"></div><p class="fine" id="bdt"></p>`,
+bind(root,svg,_){const f=()=>{const n=+root.querySelector("#bd").value,m=(0xFF<<n)&0xFF;root.querySelector("#bdo").textContent=n;root.querySelector("#bda").src=toURL({w:128,h:128,a:Float32Array.from(_.q8,v=>v/255)});
+  root.querySelector("#bdb").src=toURL({w:128,h:128,a:Float32Array.from(_.q8,v=>(v&m)/255)});root.querySelector("#bdt").textContent=tr({en:`Left: original (8 bits). Right: ${8-n} bits kept, ${2**(8-n)} levels.`,bn:`বাঁয়ে: মূল (৮ বিট)। ডানে: ${8-n}টি বিট রাখা, ${2**(8-n)}টি লেভেল।`})};root.querySelector("#bd").oninput=f;f()},
 points:[{en:"Plane k = bit k of every pixel: g_k(x,y) = (f(x,y) >> (k − 1)) AND 1. E.g. 167 = 10100111.",bn:"প্লেন k = প্রতিটি পিক্সেলের k নম্বর বিট: g_k(x,y) = (f(x,y) >> (k − ১)) AND ১। যেমন ১৬৭ = ১০১০০১১১।"},{en:"Planes 6–8: most significant information. Planes 1–5: least significant. Top planes alone reconstruct most of the image.",bn:"প্লেন ৬–৮: সবচেয়ে গুরুত্বপূর্ণ তথ্য। প্লেন ১–৫: কম গুরুত্বপূর্ণ। শুধু উপরের প্লেন দিয়েই ইমেজের বেশিরভাগ পুনর্গঠন হয়।"}]},
 /* 10 */
 {id:"histogram",slides:"59–62",title:{en:"Histograms",bn:"হিস্টোগ্রাম"},
