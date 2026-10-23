@@ -221,31 +221,124 @@ steps:[
 points:[{en:"<b>h(r_k) = n_k</b>; normalised <b>p(r_k) = n_k / MN</b>.",bn:"<b>h(r_k) = n_k</b>; নর্মালাইজড <b>p(r_k) = n_k / MN</b>।"},{en:"Dark, light, low contrast and high contrast images have characteristic histograms.",bn:"অন্ধকার, উজ্জ্বল, কম ও বেশি কনট্রাস্টের ইমেজের নিজস্ব হিস্টোগ্রাম আকার আছে।"}]},
 /* 11 */
 {id:"histeq",slides:"63–81",title:{en:"Histogram equalization",bn:"হিস্টোগ্রাম ইকুয়ালাইজেশন"},
-svg:`<g data-scene="eq"><g data-s="0"><text class="mono am" x="40" y="44">s_k = T(r_k) = (L − 1) Σⱼ₌₀ᵏ p_r(r_j)</text><g id="he-t"></g><g id="he-h1"></g><g id="he-h2"></g></g></g>
-<g data-scene="im"><g data-s="0"><g id="he-i"></g></g></g>`,
-init(svg,_){const n=[790,1023,850,656,329,245,122,81];const T=histEqTable(n,8,1);_.T=T;
-  _.tb=table($$(svg,"#he-t"),{x:40,y:70,cw:[42,66,62,72,62],rh:34,fs:12,head:["r","n","p","(L−1)·cdf","s"],rows:T.map(t=>[t.k,t.n,t.p.toFixed(2),t.s.toFixed(2),t.r])});
-  for(let r=0;r<8;r++)for(let c=2;c<5;c++)_.tb.cells[r][c].t.style.opacity=0;
-  _.h1=bars($$(svg,"#he-h1"),{x:400,y:70,w:360,h:130,n:8,labels:[0,1,2,3,4,5,6,7],title:"original histogram (64 × 64, 3-bit)",values:1});_.h1.set(n,1100);
-  _.h2=bars($$(svg,"#he-h2"),{x:400,y:270,w:360,h:130,n:8,labels:[0,1,2,3,4,5,6,7],title:"equalized histogram",cls:"hbar2",values:1});
-  const I=LOW();img2($$(svg,"#he-i"),40,70,200,200,"low contrast").show(I);img2($$(svg,"#he-i"),300,70,200,200,"equalized").show(equalize(I));
-  const b1=bars($$(svg,"#he-i"),{x:40,y:310,w:200,h:90,n:32});b1.set(histo(I,32));const b2=bars($$(svg,"#he-i"),{x:300,y:310,w:200,h:90,n:32,cls:"hbar2"});b2.set(histo(equalize(I),32));
-  txt($$(svg,"#he-i"),640,140,"histogram spread over","c sm");txt($$(svg,"#he-i"),640,164,"the full range [0, L − 1]","c sm");txt($$(svg,"#he-i"),640,210,"fully automatic:","c dim sm");txt($$(svg,"#he-i"),640,234,"no parameters to choose","c dim sm")},
+svg:`<g data-scene="goal"><g data-s="0"><g id="hg-a"></g></g></g>
+<g data-scene="cdf"><g data-s="0"><g id="hc-a"></g><text id="hc-t1" class="mono am" x="606" y="100"></text><text id="hc-t2" class="mono" x="606" y="126"></text><text id="hc-t6" class="mono" x="606" y="152"></text><text id="hc-t3" class="dim xs" x="606" y="200"></text><text id="hc-t4" class="dim xs" x="606" y="218"></text><text id="hc-t5" class="dim xs" x="606" y="236"></text><text id="hc-t7" class="dim xs" x="606" y="254"></text></g></g>
+<g data-scene="eq"><g data-s="0"><text class="mono am" x="30" y="40">s_k = T(r_k) = (L − 1) Σⱼ₌₀ᵏ p_r(r_j)</text><g id="he-t"></g><g id="he-h1"></g><g id="he-h3"></g><text id="he-f" class="mono am" x="30" y="420"></text></g></g>
+<g data-scene="map"><g data-s="0"><g id="hm-a"></g><text id="hm-f" class="mono am" x="30" y="424"></text></g></g>
+<g data-scene="im"><g data-s="0"><g id="he-i"></g></g></g>
+<g data-scene="conv"><g data-s="0"><g id="hv-a"></g></g></g>`,
+init(svg,_){
+  const cdfOf=(I,L)=>{const h=histo(I,L),N=I.a.length;let s=0;return h.map(c=>(s+=c)/N)};
+  /* goal */
+  {const g=$$(svg,"#hg-a"),I=LOW(),E=equalize(I);
+   img2(g,40,50,170,170,"low-contrast input").show(I);
+   const b1=bars(g,{x:240,y:80,w:200,h:120,n:32,title:"pixels crowded in the middle"});b1.set(histo(I,32));
+   arrow(g,460,140,520,140,"arrw");
+   const b2=bars(g,{x:540,y:80,w:200,h:120,n:32,cls:"hbar2",title:"goal: spread over 0 … L − 1"});b2.set(histo(E,32));
+   el(g,"line",{x1:540,x2:740,y1:80+120-120*(1/32)/(Math.max(...histo(E,32))/I.a.length),y2:80+120-120*(1/32)/(Math.max(...histo(E,32))/I.a.length),class:"gl",style:"stroke:#F2A93B;stroke-dasharray:6 5;stroke-width:1.5"});
+   img2(g,540,250,170,170,"equalized output").show(E);
+   txt(g,40,262,"Dark image → histogram on the left","sm");txt(g,40,286,"Bright image → histogram on the right","sm");
+   txt(g,40,310,"Low contrast → narrow histogram","sm");txt(g,40,334,"High contrast → wide, even histogram","sm am");
+   txt(g,40,384,"Equalization makes the histogram as","dim sm");txt(g,40,406,"uniform (flat) as possible.","dim sm")}
+  /* cdf as transfer function */
+  {const g=$$(svg,"#hc-a"),I=LOW(),E=equalize(I),c=cdfOf(I,256),h=histo(I,64);_.cdf=c;
+   img2(g,30,40,150,150,"input r").show(I);img2(g,30,250,150,150,"output s = T(r)").show(E);
+   const B=bars(g,{x:240,y:40,w:340,h:340,n:64,cls:"hbar"});B.set(h,Math.max(...h)/.45);B.g.style.opacity=.55;
+   const P=plot(g,{x:240,y:40,w:340,h:340,xt:[0,.5],yt:[0,.5,1],xl:"r (input)",yl:"s = T(r) = cdf(r)"});_.P=P;
+   P.fn(r=>c[Math.round(r*255)],"curve",255);P.fn(r=>r,"gl");
+   _.vl=el(g,"path",{class:"gl",style:"stroke:#6EA2FF;stroke-width:2;stroke-dasharray:5 4"});_.dot=el(g,"circle",{r:6,class:"spot"});
+   const inv=q=>{let k=0;while(k<255&&c[k]<q)k++;return k/255};const a=inv(.1),b=inv(.9);
+   _.band=el(g,"g");el(_.band,"rect",{x:P.X(a),y:380,width:P.X(b)-P.X(a),height:10,style:"fill:#6EA2FF"});
+   el(_.band,"rect",{x:230,y:P.Y(.9),width:10,height:P.Y(.1)-P.Y(.9),style:"fill:#F2A93B"});
+   el(_.band,"path",{d:`M${P.X(a)} 380 L${P.X(a)} ${P.Y(c[Math.round(a*255)])} L240 ${P.Y(.1)} M${P.X(b)} 380 L${P.X(b)} ${P.Y(c[Math.round(b*255)])} L240 ${P.Y(.9)}`,class:"gl",style:"stroke:#93A2B5;stroke-dasharray:4 4"});
+   _.ab=[a,b]}
+  /* table */
+  {const n=[790,1023,850,656,329,245,122,81];const T=histEqTable(n,8,1);_.T=T;
+   _.tb=table($$(svg,"#he-t"),{x:30,y:56,cw:[34,54,68,64,76,40],rh:34,fs:12,head:["r_k","n_k","p = n/MN","cdf = Σp","7·cdf","s_k"],rows:T.map(t=>[t.k,t.n,t.p.toFixed(2),t.cdf.toFixed(2),t.s.toFixed(2),t.r])});
+   _.h1=bars($$(svg,"#he-h1"),{x:420,y:80,w:350,h:110,n:8,labels:[0,1,2,3,4,5,6,7],title:"input histogram n_k (MN = 64 × 64 = 4096, L = 8)",values:1});_.h1.set(n,1100);
+   _.h3=bars($$(svg,"#he-h3"),{x:420,y:270,w:350,h:110,n:8,labels:[0,1,2,3,4,5,6,7],title:"7 · cdf: a rising staircase, then round",cls:"hbar2",values:1,fmtv:v=>v?v.toFixed(2):""});
+   _.hide=cols=>{for(let r=0;r<8;r++)cols.forEach(c=>_.tb.cells[r][c].t.style.opacity=0)};
+   _.show=(r,c)=>_.tb.cells[r][c].t.style.opacity=1}
+  /* mapping */
+  {const g=$$(svg,"#hm-a"),T=_.T;_.mR=[];_.mS=[];_.mA=[];
+   txt(g,95,40,"r_k  (count)","c dim sm");txt(g,315,40,"s_k  (new count)","c dim sm");
+   for(let k=0;k<8;k++){const y=54+k*44;_.mR.push(boxT(g,50,y,90,34,`${k}`,"box",String(T[k].n)));_.mS.push({g:boxT(g,270,y,90,34,`${k}`,"box"," "),y})}
+   _.mS.forEach(o=>o.sub=o.g.querySelectorAll("text")[1]);
+   T.forEach((t,k)=>{const a=arrow(g,142,54+k*44+17,266,54+t.r*44+17,"arrw");a.style.opacity=0;_.mA.push(a)});
+   _.ho=bars(g,{x:430,y:70,w:340,h:270,n:8,cls:"hbar"});_.ho.g.style.opacity=0;
+   _.hn=bars(g,{x:430,y:70,w:340,h:270,n:8,labels:[0,1,2,3,4,5,6,7],title:"equalized histogram",cls:"hbar2",values:1});
+   const yU=70+270-270*512/1100;_.uni=el(g,"g");el(_.uni,"line",{x1:430,x2:770,y1:yU,y2:yU,style:"stroke:#F2A93B;stroke-width:1.5;stroke-dasharray:6 5"});txt(_.uni,600,385,"- - -  perfectly flat: 4096 / 8 = 512 per level","c xs am")}
+  /* real image + cdfs */
+  {const g=$$(svg,"#he-i"),I=LOW(),E=equalize(I);
+   img2(g,30,40,170,170,"low contrast").show(I);img2(g,230,40,170,170,"equalized").show(E);
+   const b1=bars(g,{x:30,y:250,w:170,h:90,n:32});b1.set(histo(I,32));const b2=bars(g,{x:230,y:250,w:170,h:90,n:32,cls:"hbar2"});b2.set(histo(E,32));
+   txt(g,115,370,"histogram before","c dim xs");txt(g,315,370,"histogram after","c dim xs");
+   const P=plot(g,{x:470,y:50,w:290,h:290,xt:[0,.5],yt:[0,.5,1],xl:"intensity",yl:"cumulative fraction (cdf)",grid:1});
+   const c1=cdfOf(I,256),c2=cdfOf(E,256);P.fn(r=>c1[Math.round(r*255)],"curve2",255);P.fn(r=>c2[Math.round(r*255)],"curve",255);
+   txt(g,480,390,"— cdf before: steep in a narrow band","sm bl");txt(g,480,412,"— cdf after: almost a straight line","sm am")}
+  /* convergence */
+  {const g=$$(svg,"#hv-a"),S=SC();const V=[["dark",mapI(S,v=>.03+.32*v)],["bright",mapI(S,v=>.62+.36*v)],["low contrast",LOW()]];
+   txt(g,20,40,"input","dim sm");txt(g,20,250,"equalized","dim sm am");
+   V.forEach(([l,I],i)=>{const x=20+i*262,E=equalize(I);img2(g,x,52,110,110,l).show(I);const b=bars(g,{x:x+122,y:62,w:118,h:90,n:32});b.set(histo(I,32));
+     img2(g,x,262,110,110,"").show(E);const b2=bars(g,{x:x+122,y:272,w:118,h:90,n:32,cls:"hbar2"});b2.set(histo(E,32))})}
+},
 steps:[
- {scene:"eq",k:0,fx:(svg,_)=>{for(let r=0;r<8;r++)for(let c=2;c<5;c++)_.tb.cells[r][c].t.style.opacity=0;_.h2.set([0,0,0,0,0,0,0,0],1100);_.tb.clear()},
-   en:"A good, high contrast image tends to have a flat, uniform histogram over the whole range. Histogram equalization aims for that. The transformation is the cumulative distribution: s k equals L minus 1 times the sum of p of r j, for j from 0 to k. Let's work the example: a 3-bit, 64 by 64 image, so 4096 pixels.",
-   bn:"ভালো, বেশি কনট্রাস্টের ইমেজের হিস্টোগ্রাম সাধারণত পুরো পরিসর জুড়ে সমতল বা সুষম হয়। হিস্টোগ্রাম ইকুয়ালাইজেশন সেটাই চায়। ট্রান্সফরমেশনটি হলো ক্রমযোজিত বণ্টন: s k সমান L বিয়োগ ১ গুণ j = ০ থেকে k পর্যন্ত p(r j)-এর যোগফল। চলো উদাহরণটি করি: একটি ৩-বিট, ৬৪ বাই ৬৪ ইমেজ, অর্থাৎ ৪০৯৬ পিক্সেল।"},
- {scene:"eq",k:0,fx:(svg,_)=>{const L=[];for(let r=0;r<8;r++)L.push([900,()=>{_.tb.clear();_.tb.hl(r);for(let c=2;c<5;c++)_.tb.cells[r][c].t.style.opacity=1}]);
-   L.reset=()=>{for(let r=0;r<8;r++)for(let c=2;c<5;c++)_.tb.cells[r][c].t.style.opacity=0;_.tb.clear()};return seq(L,true,2500)},
-   en:"For each level, divide the count by 4096 to get p. Add up p cumulatively and multiply by L minus 1, which is 7. For level 0: 790 over 4096 is 0.19, times 7 is 1.33, which rounds to 1. For level 1, the running total gives 3.08, which rounds to 3. Continue down to level 7, which reaches 7.",
-   bn:"প্রতিটি লেভেলের জন্য সংখ্যাকে ৪০৯৬ দিয়ে ভাগ করে p পাও। p-গুলো ক্রমে যোগ করে L বিয়োগ ১, অর্থাৎ ৭ দিয়ে গুণ করো। লেভেল ০-এর জন্য: ৭৯০ ভাগ ৪০৯৬ হলো ০.১৯, গুণ ৭ হলো ১.৩৩, রাউন্ড করে ১। লেভেল ১-এর জন্য ক্রমযোগফল দেয় ৩.০৮, রাউন্ড করে ৩। এভাবে লেভেল ৭ পর্যন্ত, যা ৭-এ পৌঁছায়।"},
- {scene:"eq",k:0,fx:(svg,_)=>{for(let r=0;r<8;r++)for(let c=2;c<5;c++)_.tb.cells[r][c].t.style.opacity=1;_.tb.clear();const o=[0,0,0,0,0,0,0,0];_.T.forEach(t=>o[t.r]+=t.n);_.h2.set(o,1100)},
-   en:"Now move each pixel count to its new level. Levels 3 and 4 both map to 6, so 656 plus 329 gives 985. Levels 5, 6 and 7 all map to 7, giving 448. The result is spread more evenly across the range. In discrete images the histogram is not perfectly flat, but it covers a wider range.",
-   bn:"এবার প্রতিটি লেভেলের পিক্সেল সংখ্যা তার নতুন লেভেলে সরাও। লেভেল ৩ ও ৪ দুটোই ৬-এ যায়, তাই ৬৫৬ যোগ ৩২৯ হয় ৯৮৫। লেভেল ৫, ৬ ও ৭ সবই ৭-এ যায়, তাতে হয় ৪৪৮। ফলাফল পুরো পরিসর জুড়ে বেশি সমানভাবে ছড়ানো। বিচ্ছিন্ন ইমেজে হিস্টোগ্রাম পুরোপুরি সমতল হয় না, তবে আরও বড় পরিসর জুড়ে থাকে।"},
- {scene:"im",k:0,en:"On a real image, equalization automatically spreads the histogram across the full range and greatly increases contrast. It needs no parameters, which makes it very convenient.",
-   bn:"বাস্তব ইমেজে ইকুয়ালাইজেশন স্বয়ংক্রিয়ভাবে হিস্টোগ্রামকে পুরো পরিসরে ছড়িয়ে দেয় এবং কনট্রাস্ট অনেক বাড়িয়ে দেয়। এতে কোনো প্যারামিটার লাগে না, তাই এটি খুব সুবিধাজনক।"}
+ {scene:"goal",k:0,
+   en:"First, the goal. The shape of a histogram tells us about contrast. A dark image has its histogram on the left, a bright image on the right, and a low contrast image has a narrow histogram crowded in the middle. A good, high contrast image uses the whole range fairly evenly. Histogram equalization is an automatic transformation that spreads the histogram out, as close to flat as possible.",
+   bn:"প্রথমে লক্ষ্যটা বুঝি। হিস্টোগ্রামের আকৃতি কনট্রাস্ট সম্পর্কে বলে দেয়। অন্ধকার ইমেজের হিস্টোগ্রাম বাঁ দিকে, উজ্জ্বল ইমেজের ডান দিকে, আর কম কনট্রাস্টের ইমেজের হিস্টোগ্রাম মাঝখানে সরু হয়ে জড়ো থাকে। ভালো, বেশি কনট্রাস্টের ইমেজ পুরো পরিসর প্রায় সমানভাবে ব্যবহার করে। হিস্টোগ্রাম ইকুয়ালাইজেশন একটি স্বয়ংক্রিয় ট্রান্সফরমেশন, যা হিস্টোগ্রামকে যতটা সম্ভব সমতল করে ছড়িয়ে দেয়।"},
+ {scene:"cdf",k:0,fx:(svg,_)=>{_.band.style.opacity=0;const P=_.P,c=_.cdf;["#hc-t3","#hc-t4","#hc-t5","#hc-t7"].forEach((s,i)=>$$(svg,s).textContent=["Steep where pixels are many:","levels pulled apart.","Flat where pixels are few:","levels squeezed."][i]);$$(svg,"#hc-t6").textContent="";
+   return rafLoop(t=>{const r=(Math.sin(t*.7-1.57)+1)/2,s=c[Math.round(r*255)];_.vl.setAttribute("d",`M${P.X(r)} ${P.Y(0)} V${P.Y(s)} H${P.X(0)}`);_.dot.setAttribute("cx",P.X(r));_.dot.setAttribute("cy",P.Y(s));
+     $$(svg,"#hc-t1").textContent=`r = ${(r*255).toFixed(0)}`;$$(svg,"#hc-t2").textContent=`s = ${(s*255).toFixed(0)}`})},
+   en:"Which transformation does this? The cumulative distribution function, the CDF. For each input level r, count the fraction of pixels with value up to r, and use that as the output. Follow the dot: go up from r to the curve, then across to read s. Where many pixels sit, the curve is steep, so nearby input levels are pulled far apart. Where few pixels sit, the curve is flat, so those levels are squeezed together.",
+   bn:"কোন ট্রান্সফরমেশন এটা করে? ক্রমযোজিত বণ্টন ফাংশন, অর্থাৎ CDF। প্রতিটি ইনপুট লেভেল r-এর জন্য দেখো, মোট পিক্সেলের কত অংশের মান r বা তার কম, আর সেটাই আউটপুট হিসেবে নাও। বিন্দুটি অনুসরণ করো: r থেকে উপরে বক্ররেখা পর্যন্ত যাও, তারপর পাশে গিয়ে s পড়ো। যেখানে অনেক পিক্সেল, সেখানে বক্ররেখা খাড়া, তাই কাছাকাছি ইনপুট লেভেলগুলো অনেক দূরে সরে যায়। যেখানে পিক্সেল কম, সেখানে বক্ররেখা সমতল, তাই সেই লেভেলগুলো কাছাকাছি চলে আসে।"},
+ {scene:"cdf",k:0,fx:(svg,_)=>{_.band.style.opacity=1;const P=_.P,[a,b]=_.ab;_.vl.setAttribute("d","");_.dot.setAttribute("cx",-50);
+   $$(svg,"#hc-t1").textContent="80% of pixels";$$(svg,"#hc-t2").textContent=`r: ${(a*255).toFixed(0)} – ${(b*255).toFixed(0)}`;$$(svg,"#hc-t6").textContent="s: 26 – 230";
+   ["#hc-t3","#hc-t4","#hc-t5","#hc-t7"].forEach((s,i)=>$$(svg,s).textContent=["T is increasing:","order is kept.","0 ≤ T(r) ≤ L − 1:","output in range."][i])},
+   en:"Here is the key result. The middle 80 percent of the pixels occupy only a narrow input band, shown in blue. After the CDF they occupy 80 percent of the whole output range, shown in amber. That is exactly the spreading we wanted. The CDF also has the two properties a valid transformation needs: it is monotonically increasing, so the order of intensities is preserved, and its output stays between 0 and L minus 1.",
+   bn:"এটাই মূল ফলাফল। মাঝের ৮০ শতাংশ পিক্সেল ইনপুটে একটি সরু অংশ দখল করে, যা নীল রঙে দেখানো। CDF-এর পরে তারা পুরো আউটপুট পরিসরের ৮০ শতাংশ দখল করে, যা কমলা রঙে দেখানো। ঠিক এই ছড়িয়ে দেওয়াটাই আমরা চেয়েছিলাম। একটি বৈধ ট্রান্সফরমেশনের দুটি শর্তও CDF পূরণ করে: এটি একঘেয়েভাবে বাড়ে, তাই তীব্রতার ক্রম ঠিক থাকে, আর এর আউটপুট ০ থেকে L বিয়োগ ১-এর মধ্যে থাকে।"},
+ {scene:"eq",k:0,fx:(svg,_)=>{_.hide([2,3,4,5]);_.tb.clear();_.h3.set(new Array(8).fill(0),7);$$(svg,"#he-f").textContent="MN = 64 × 64 = 4096 pixels · L = 8 levels (3-bit) · L − 1 = 7"},
+   en:"Now the discrete version, worked like an exam problem. The formula is s k equals L minus 1, times the sum of p r of r j, for j from 0 to k. Our image is 64 by 64, so M N is 4096 pixels, with 3 bits, so L is 8 levels. The table lists how many pixels, n k, have each level. Most pixels are dark, in levels 0 to 3.",
+   bn:"এবার বিচ্ছিন্ন রূপটি, পরীক্ষার অঙ্কের মতো করে। সূত্র হলো s k সমান L বিয়োগ ১, গুণ j = ০ থেকে k পর্যন্ত p r(r j)-এর যোগফল। আমাদের ইমেজ ৬৪ বাই ৬৪, তাই M N হলো ৪০৯৬ পিক্সেল, আর ৩ বিট, তাই L হলো ৮টি লেভেল। টেবিলে প্রতিটি লেভেলে কয়টি পিক্সেল আছে, অর্থাৎ n k দেখানো হয়েছে। বেশিরভাগ পিক্সেল অন্ধকার, লেভেল ০ থেকে ৩-এ।"},
+ {scene:"eq",k:0,fx:(svg,_)=>{const L=[];for(let r=0;r<8;r++)L.push([1000,()=>{_.tb.clear();_.tb.hl(r);_.show(r,2);$$(svg,"#he-f").textContent=`p_r(${r}) = ${_.T[r].n} / 4096 = ${_.T[r].p.toFixed(2)}`}]);
+   L.reset=()=>{_.hide([2,3,4,5]);_.tb.clear()};_.hide([3,4,5]);_.h3.set(new Array(8).fill(0),7);return seq(L,true,2500)},
+   en:"Step 1: the probability of each level. Divide each count by the total, 4096. For level 0, 790 over 4096 is 0.19. For level 1, 1023 over 4096 is 0.25. Continue for every level. These probabilities always add up to 1.",
+   bn:"ধাপ ১: প্রতিটি লেভেলের সম্ভাবনা। প্রতিটি সংখ্যাকে মোট ৪০৯৬ দিয়ে ভাগ করো। লেভেল ০-এর জন্য ৭৯০ ভাগ ৪০৯৬ হলো ০.১৯। লেভেল ১-এর জন্য ১০২৩ ভাগ ৪০৯৬ হলো ০.২৫। প্রতিটি লেভেলের জন্য এভাবে করো। এই সম্ভাবনাগুলোর যোগফল সবসময় ১ হয়।"},
+ {scene:"eq",k:0,fx:(svg,_)=>{const L=[];for(let r=0;r<8;r++)L.push([1100,()=>{_.tb.clear();_.tb.hl(r);_.show(r,3);const prev=r?_.T[r-1].cdf.toFixed(2)+" + ":"";$$(svg,"#he-f").textContent=`cdf(${r}) = ${prev}${_.T[r].p.toFixed(2)} = ${_.T[r].cdf.toFixed(2)}`}]);
+   L.reset=()=>{_.hide([3,4,5]);_.tb.clear()};_.hide([4,5]);for(let r=0;r<8;r++)_.show(r,2);_.h3.set(new Array(8).fill(0),7);return seq(L,true,2500)},
+   en:"Step 2: the cumulative sum. Keep a running total of the probabilities. Level 0 is 0.19. Level 1 is 0.19 plus 0.25, which is 0.44. Level 2 adds 0.21 to get 0.65, and so on. The last value must be 1, because every pixel has been counted.",
+   bn:"ধাপ ২: ক্রমযোজিত যোগফল। সম্ভাবনাগুলোর চলমান যোগফল রাখো। লেভেল ০ হলো ০.১৯। লেভেল ১ হলো ০.১৯ যোগ ০.২৫, অর্থাৎ ০.৪৪। লেভেল ২-এ ০.২১ যোগ করে ০.৬৫, এভাবে চলবে। শেষ মান অবশ্যই ১ হবে, কারণ তখন সব পিক্সেল গোনা হয়ে গেছে।"},
+ {scene:"eq",k:0,fx:(svg,_)=>{const L=[];const v=new Array(8).fill(0);for(let r=0;r<8;r++)L.push([1200,()=>{_.tb.clear();_.tb.hl(r);_.show(r,4);_.show(r,5);v[r]=_.T[r].s;_.h3.set(v,7);$$(svg,"#he-f").textContent=`s_${r} = 7 × ${_.T[r].cdf.toFixed(2)} = ${_.T[r].s.toFixed(2)}  →  round  →  ${_.T[r].r}`}]);
+   L.reset=()=>{_.hide([4,5]);_.tb.clear();v.fill(0);_.h3.set(v,7)};_.hide([4,5]);for(let r=0;r<8;r++){_.show(r,2);_.show(r,3)}return seq(L,true,2500)},
+   en:"Step 3: multiply by L minus 1, which is 7, and round to the nearest integer level. Level 0: 7 times 0.19 is 1.33, which rounds to 1. Level 1: 7 times 0.44 is 3.08, so 3. Level 2: 4.55 rounds to 5. Level 3: 5.67 rounds to 6. Level 4: 6.23 also rounds to 6. Levels 5, 6 and 7 all round to 7.",
+   bn:"ধাপ ৩: L বিয়োগ ১, অর্থাৎ ৭ দিয়ে গুণ করো, তারপর কাছের পূর্ণসংখ্যায় রাউন্ড করো। লেভেল ০: ৭ গুণ ০.১৯ হলো ১.৩৩, রাউন্ড করে ১। লেভেল ১: ৭ গুণ ০.৪৪ হলো ৩.০৮, তাই ৩। লেভেল ২: ৪.৫৫ রাউন্ড করে ৫। লেভেল ৩: ৫.৬৭ রাউন্ড করে ৬। লেভেল ৪: ৬.২৩-ও রাউন্ড করে ৬। লেভেল ৫, ৬ ও ৭ সবই রাউন্ড করে ৭।"},
+ {scene:"map",k:0,fx:(svg,_)=>{const T=_.T;const cnt=new Array(8).fill(0);_.ho.g.style.opacity=0;_.uni.style.opacity=0;
+   const reset=()=>{cnt.fill(0);_.mA.forEach(a=>a.style.opacity=0);_.mS.forEach(o=>{o.sub.textContent="";o.g.querySelector("rect").classList.remove("a")});_.mR.forEach(g=>g.querySelector("rect").classList.remove("a"));_.hn.set(cnt,1100)};
+   const L=[];T.forEach((t,k)=>L.push([1300,()=>{_.mR.forEach(g=>g.querySelector("rect").classList.remove("a"));_.mR[k].querySelector("rect").classList.add("a");_.mA[k].style.opacity=1;cnt[t.r]+=t.n;
+     const o=_.mS[t.r];o.sub.textContent=String(cnt[t.r]);o.g.querySelector("rect").classList.add("a");_.hn.set(cnt,1100);
+     $$(svg,"#hm-f").textContent=`level ${k} → ${t.r}: ${t.n} pixels move${cnt[t.r]>t.n?`, total at ${t.r} = ${cnt[t.r]}`:""}`}]));
+   L.reset=reset;reset();return seq(L,true,3000)},
+   en:"Step 4: move the pixels. Every pixel with level r k now gets level s k, so its count moves to the new level. Level 0 goes to 1, level 1 to 3, level 2 to 5. Levels 3 and 4 both go to 6, so their counts add: 656 plus 329 is 985. Levels 5, 6 and 7 all go to 7: 245 plus 122 plus 81 is 448.",
+   bn:"ধাপ ৪: পিক্সেলগুলো সরাও। r k লেভেলের প্রতিটি পিক্সেল এখন s k লেভেল পায়, তাই তার সংখ্যা নতুন লেভেলে চলে যায়। লেভেল ০ যায় ১-এ, লেভেল ১ যায় ৩-এ, লেভেল ২ যায় ৫-এ। লেভেল ৩ ও ৪ দুটোই যায় ৬-এ, তাই তাদের সংখ্যা যোগ হয়: ৬৫৬ যোগ ৩২৯ হলো ৯৮৫। লেভেল ৫, ৬ ও ৭ সবই যায় ৭-এ: ২৪৫ যোগ ১২২ যোগ ৮১ হলো ৪৪৮।"},
+ {scene:"map",k:0,fx:(svg,_)=>{const T=_.T,cnt=new Array(8).fill(0);T.forEach(t=>cnt[t.r]+=t.n);_.mA.forEach(a=>a.style.opacity=1);
+   _.mS.forEach((o,k)=>{o.sub.textContent=cnt[k]?String(cnt[k]):"empty";o.g.querySelector("rect").classList.toggle("a",!!cnt[k])});_.mR.forEach(g=>g.querySelector("rect").classList.remove("a"));
+   _.hn.set(cnt,1100);_.ho.set(T.map(t=>t.n),1100);_.ho.g.style.opacity=.45;_.uni.style.opacity=1;$$(svg,"#hm-f").textContent="new counts: 0 | 790 | 0 | 1023 | 0 | 850 | 985 | 448"},
+   en:"Compare the result with the input, shown faintly behind. The pixels are now spread from level 1 up to level 7 instead of being crowded at the dark end. But the histogram is not perfectly flat, which would be 512 pixels at every level. That is normal for discrete images: we can only move whole levels, never split one, so some levels merge and others, here 0, 2 and 4, stay empty.",
+   bn:"ফলাফলকে পেছনে হালকা করে দেখানো ইনপুটের সাথে তুলনা করো। পিক্সেলগুলো এখন অন্ধকার প্রান্তে জড়ো না থেকে লেভেল ১ থেকে ৭ পর্যন্ত ছড়িয়ে আছে। তবে হিস্টোগ্রাম পুরোপুরি সমতল নয়, যা হলে প্রতিটি লেভেলে ৫১২টি পিক্সেল থাকত। বিচ্ছিন্ন ইমেজে এটাই স্বাভাবিক: আমরা পুরো লেভেল সরাতে পারি, কোনো লেভেলকে ভাগ করতে পারি না, তাই কিছু লেভেল একসাথে মিশে যায় আর কিছু, এখানে ০, ২ ও ৪, খালি থাকে।"},
+ {scene:"im",k:0,en:"On a real 8-bit image the same steps run over 256 levels. The low contrast input becomes much clearer. Look at the cumulative curves on the right: before equalization the CDF rises steeply in a narrow band, and afterwards it is almost a straight diagonal line. A straight CDF means a nearly uniform histogram.",
+   bn:"একটি বাস্তব ৮-বিট ইমেজে একই ধাপগুলো ২৫৬টি লেভেলে চলে। কম কনট্রাস্টের ইনপুট অনেক পরিষ্কার হয়ে যায়। ডানের ক্রমযোজিত বক্ররেখা দেখো: ইকুয়ালাইজেশনের আগে CDF একটি সরু অংশে খাড়াভাবে ওঠে, আর পরে এটি প্রায় একটি সরল কোণাকুণি রেখা। সরল CDF মানে প্রায় সুষম হিস্টোগ্রাম।"},
+ {scene:"conv",k:0,en:"Equalization is fully automatic: there are no parameters to choose. Here the same scene is shown dark, bright and low in contrast. After equalization all three look very similar, with similar histograms, because each one is mapped through its own CDF. The downside: it can also boost noise, and it treats the whole image the same way. When we want a specific histogram shape, or local detail, we use histogram matching or local histogram processing, which come next.",
+   bn:"ইকুয়ালাইজেশন সম্পূর্ণ স্বয়ংক্রিয়: কোনো প্যারামিটার বাছাই করতে হয় না। এখানে একই দৃশ্য অন্ধকার, উজ্জ্বল ও কম কনট্রাস্টে দেখানো হয়েছে। ইকুয়ালাইজেশনের পরে তিনটিই প্রায় একরকম দেখায়, হিস্টোগ্রামও প্রায় একরকম, কারণ প্রতিটিকে তার নিজের CDF দিয়ে ম্যাপ করা হয়। অসুবিধা: এটি নয়েজও বাড়িয়ে দিতে পারে, আর পুরো ইমেজকে একইভাবে বদলায়। নির্দিষ্ট আকৃতির হিস্টোগ্রাম বা লোকাল খুঁটিনাটি চাইলে আমরা হিস্টোগ্রাম ম্যাচিং বা লোকাল হিস্টোগ্রাম প্রসেসিং ব্যবহার করি, যা পরে আসছে।"}
 ],
-points:[{en:"<b>s_k = (L − 1) Σ p_r(r_j)</b>, j = 0…k (the CDF).",bn:"<b>s_k = (L − ১) Σ p_r(r_j)</b>, j = ০…k (CDF)।"},{en:"Example (L = 8, 4096 px): r → s = 1, 3, 5, 6, 6, 7, 7, 7; new counts at 1, 3, 5, 6, 7 = 790, 1023, 850, 985, 448.",bn:"উদাহরণ (L = ৮, ৪০৯৬ পিক্সেল): r → s = ১, ৩, ৫, ৬, ৬, ৭, ৭, ৭; নতুন সংখ্যা ১, ৩, ৫, ৬, ৭-এ = ৭৯০, ১০২৩, ৮৫০, ৯৮৫, ৪৪৮।"}]},
+panel:()=>`<h3>${tr({en:"Try it: equalize any input",bn:"নিজে করো: যেকোনো ইনপুট ইকুয়ালাইজ করো"})}</h3><div class="prow">${sl("eb",tr({en:"Brightness",bn:"ব্রাইটনেস"}),0,100,1,30)}${sl("ec",tr({en:"Contrast",bn:"কনট্রাস্ট"}),5,100,1,30)}</div><div class="out"><figure style="margin:0"><img id="ea" alt="" width="180" height="180" style="border-radius:6px"><img id="eah" alt="" width="180" height="70" style="display:block;margin-top:4px"></figure><figure style="margin:0"><img id="ee" alt="" width="180" height="180" style="border-radius:6px"><img id="eeh" alt="" width="180" height="70" style="display:block;margin-top:4px"></figure></div><p class="fine">${tr({en:"Left: input and its histogram. Right: after equalization. Whatever you choose, the result looks almost the same.",bn:"বাঁয়ে: ইনপুট ও তার হিস্টোগ্রাম। ডানে: ইকুয়ালাইজেশনের পরে। যা-ই বাছাই করো, ফলাফল প্রায় একই দেখায়।"})}</p>`,
+bind(root){const S=SC();const hi=(I,hot)=>{const h=histo(I,64),m=Math.max(...h);return rgbURL(180,70,((u,v)=>v>1-h[Math.min(63,Math.floor(u*64))]/m?(hot?[242,169,59]:[110,162,255]):[15,26,39]))};
+  const f=()=>{const b=+root.querySelector("#eb").value/100,c=+root.querySelector("#ec").value/100;root.querySelector("#ebo").textContent=Math.round(b*100);root.querySelector("#eco").textContent=Math.round(c*100);
+    const lo=b*(1-c),I=mapI(S,v=>lo+c*v),E=equalize(I);root.querySelector("#ea").src=toURL(I);root.querySelector("#ee").src=toURL(E);root.querySelector("#eah").src=hi(I,0);root.querySelector("#eeh").src=hi(E,1)};
+  root.querySelector("#eb").oninput=f;root.querySelector("#ec").oninput=f;f()},
+points:[{en:"<b>s_k = (L − 1) Σⱼ₌₀ᵏ p_r(r_j)</b>: the CDF scaled to [0, L − 1], then rounded.",bn:"<b>s_k = (L − ১) Σⱼ₌₀ᵏ p_r(r_j)</b>: CDF-কে [০, L − ১]-এ স্কেল করে রাউন্ড করা।"},
+ {en:"Recipe: n_k → p = n_k/MN → running sum (cdf) → × (L − 1) → round → move counts.",bn:"ধাপ: n_k → p = n_k/MN → চলমান যোগফল (cdf) → × (L − ১) → রাউন্ড → সংখ্যা সরানো।"},
+ {en:"Why it works: T is steep where pixels are many, so crowded levels are spread apart; T is increasing and stays in range.",bn:"কেন কাজ করে: যেখানে পিক্সেল বেশি সেখানে T খাড়া, তাই ভিড় করা লেভেল ছড়িয়ে যায়; T ক্রমবর্ধমান এবং পরিসরের মধ্যে থাকে।"},
+ {en:"Example (L = 8, 4096 px): r → s = 1, 3, 5, 6, 6, 7, 7, 7; new counts at 1, 3, 5, 6, 7 = 790, 1023, 850, 985, 448.",bn:"উদাহরণ (L = ৮, ৪০৯৬ পিক্সেল): r → s = ১, ৩, ৫, ৬, ৬, ৭, ৭, ৭; নতুন সংখ্যা ১, ৩, ৫, ৬, ৭-এ = ৭৯০, ১০২৩, ৮৫০, ৯৮৫, ৪৪৮।"},
+ {en:"Discrete result is not perfectly flat: levels can merge, never split. Automatic, but may amplify noise.",bn:"বিচ্ছিন্ন ফলাফল পুরোপুরি সমতল নয়: লেভেল মিশে যেতে পারে, ভাগ হয় না। স্বয়ংক্রিয়, তবে নয়েজ বাড়াতে পারে।"}]},
 /* 12 */
 {id:"histeq2",slides:"82–86",title:{en:"Histogram equalization: a 5 × 5 example",bn:"হিস্টোগ্রাম ইকুয়ালাইজেশন: ৫ × ৫ উদাহরণ"},
 svg:`<g id="h2-a"></g><g id="h2-t"></g><g id="h2-b"></g><text id="h2-f" class="mono am c" x="400" y="420"></text>`,
